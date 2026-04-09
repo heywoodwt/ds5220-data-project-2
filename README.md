@@ -1,6 +1,6 @@
 # Earthquake Detector for USGS
 
-## Deliverables
+### Deliverables
 
 Submit the following in the Canvas assignment:
 
@@ -25,9 +25,16 @@ Submit the following in the Canvas assignment:
 In addition to the above, submit a short written response (one paragraph each) to the following:
 
 1. In the ISS sample application, data is persisted in DynamoDB. If this were a much higher-frequency application (hundreds of writes per minute), what changes would you make to the persistence strategy and why?
-2. The ISS tracker detects orbital burns by comparing consecutive altitude readings. Describe at least one way this detection logic could produce a false positive, and how you would make it more robust.
-3. How does each `CronJob` pod get AWS permissions without credentials being passed into the container?
-4. Notice the structure of the `iss-tracking` table in DynamoDB. What is the partition key and what is the sort key? Why do these work well in this example, but may not work for other solutions?
+   **The underlying issue is that DynamoDB partitions cap at ~1,000 WCUs/second. All writes hitting one key will get throttled. To fix this I'd shard the partition key to ISS#0–ISS#9 (distributed by hash(timestamp) % 10), then fan-out reads across shards. You'd need a long-running Deployment or a Kinesis stream + Lambda consumer instead. Switch to batch_writer() (up to 25 items/call) and add a DynamoDB TTL attribute to bound table growth and avoid the expensive fetch_history() full-scan that runs on every execution.**
+3. The ISS tracker detects orbital burns by comparing consecutive altitude readings. Describe at least one way this detection logic could produce a false positive, and how you would make it more robust?
+   **An API glich could occur that triggers one bad altitude value (interpolation error, stale cache from wheretheiss.at) stores a phantom reading and triggers the label, then the next reading shows a sharp negative delta despite no burn ever occuring.**
+5. How does each `CronJob` pod get AWS permissions without credentials being passed into the container?
+   **The EC2 node has an IAM instance profile attached at the AWS layer; IMDS hands back temporary STS credentials (key + secret + session token) that are auto-rotated and never written to disk.**
+7. Notice the structure of the `iss-tracking` table in DynamoDB. What is the partition key and what is the sort key? Why do these work well in this example, but may not work for other solutions?
+   **Partition key: satellite_id (always "ISS") Sort key: timestamp (ISO 8601 string, e.g., "2024-04-09T12:34:56Z"). String timestamps prevent native numeric range arithmetic; epoch-milliseconds as a Number sort key would be more flexible.**
 
 ### Link to AWS S3 Bucket
 [http://mtk9va-earthquake-detector.s3-website-us-east-1.amazonaws.com/earthquake-activity.png](http://mtk9va-earthquake-detector.s3-website-us-east-1.amazonaws.com/earthquake-activity.png)
+
+### Package
+[https://github.com/users/heywoodwt/packages/container/package/earthquake-detector](https://github.com/users/heywoodwt/packages/container/package/earthquake-detector)
