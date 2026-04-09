@@ -9,11 +9,16 @@ Submit the following in the Canvas assignment:
 2. **Your Data Application Repo URL** — the public GitHub URL to your pipeline code. The repository must include the Python script, a `Dockerfile`, and a `requirements.txt`.
 
 3. **Canvas Quiz** — answer the short-answer questions posted in Canvas. These will ask you to reflect on what you built, including:
-    - Which data source you chose and why.
-    - What you observe in the data — any patterns, spikes, or surprises over the 72-hour window.
-    - How Kubernetes Secrets differ from plain environment variables and why that distinction matters.
-    - How your CronJob pods gain permission to read/write to AWS services without credentials appearing in any file.
-    - One thing you would do differently if you were building this pipeline for a real production system.
+    - Which data source you chose and why?
+      **I chose to collect data on earthquakes because their is a real need to alert people of quakes if they are near the epicenter or have loved ones near the epicenter.**
+    - What you observe in the data — any patterns, spikes, or surprises over the 72-hour window?
+      **I extended my data past 72 hours due to the frequency of earthquakes. There are earthquakes every day all over Earth and there tends to be many relatively minor quakes with an also small number of moderate earthquakes. There is an infrequent number of major earthquakes which do not occur everyday.**
+    - How Kubernetes Secrets differ from plain environment variables and why that distinction matters?
+      **Kubernetes Secrets differ from plain text environment variables in that they're encrypted and hidden from copying that may result if they are left unguarded and open to copying. This matters in order to protect the underlying data that the API provides.**
+    - How your CronJob pods gain permission to read/write to AWS services without credentials appearing in any file?
+      **The EC2 instance has an AMI role assigned to it that grants certain permissions. It queries the EC2 Instance Metadata Service (IMDS) which provides credentials that are temporary and never written to the disk. This protects the underlying secrets.**
+    - One thing you would do differently if you were building this pipeline for a real production system?
+      **If I was building the pipeline for production I would have to account for the increase in traffic to the S3 bucket and the distributed nature of the requests I'd use a CDN like CloudFront.**
 
 ### Graduate Students
 
@@ -23,3 +28,6 @@ In addition to the above, submit a short written response (one paragraph each) t
 2. The ISS tracker detects orbital burns by comparing consecutive altitude readings. Describe at least one way this detection logic could produce a false positive, and how you would make it more robust.
 3. How does each `CronJob` pod get AWS permissions without credentials being passed into the container?
 4. Notice the structure of the `iss-tracking` table in DynamoDB. What is the partition key and what is the sort key? Why do these work well in this example, but may not work for other solutions?
+
+### Link to AWS S3 Bucket
+[http://mtk9va-earthquake-detector.s3-website-us-east-1.amazonaws.com/earthquake-activity.png](http://mtk9va-earthquake-detector.s3-website-us-east-1.amazonaws.com/earthquake-activity.png)
